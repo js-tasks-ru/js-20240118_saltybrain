@@ -13,6 +13,3 @@ export const omit = (obj, ...fields) => {
     return acc;
   }, {});
 };
-
-const obj = {foo: 'foo', bar: 'bar', baz: 'baz'};
-console.log(omit(obj, 'test'));
