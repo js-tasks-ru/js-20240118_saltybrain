@@ -22,16 +22,16 @@ export default class SortableTable {
   }
 
   createHeaderTemplate(orderedField = '', order = '') {
-    const result = this.headerConfig.reduce((temp, item) => {
-      const {id, title, sortable, template} = item;
-      const headerCellTemplate = template ? template(this.data) :
+    const result = this.headerConfig.reduce((template, item) => {
+      const {id, title, sortable} = item;
+      const headerCellTemplate =
         `<div class="sortable-table__cell"
           data-id="${id}" data-sortable="${sortable}"
           ${id === orderedField ? `data-order=${order}` : ''}>
             <span>${title}</span>
             ${sortable ? sortArrowTemplate : ''}
           </div>`;
-      return temp += headerCellTemplate;
+      return template += headerCellTemplate;
     }, '');
     return result;
   }
@@ -39,9 +39,7 @@ export default class SortableTable {
   createBodyTemplate() {
     const result = this.data.reduce((temp, item) => {
       const rowTemplate = `
-      <a href="/products/${item.id}" class="sortable-table__row">
-        ${this.createRowTemplate(item)}
-      </a>
+      <a href="/products/${item.id}" class="sortable-table__row">${this.createRowTemplate(item)}</a>
       `;
       return temp += rowTemplate;
     }, '');
@@ -49,18 +47,18 @@ export default class SortableTable {
   }
 
   createRowTemplate(data) {
-    const headerFields = this.headerConfig.map(({id}) => id);
-    const result = headerFields.reduce((temp, field) => {
+    const headerFields = this.headerConfig.map(({id, template}) =>
+      ({field: id, template: template ? template : this.defaultCellTemplate }));
+    const result = headerFields.reduce((temp, {field, template}) => {
       const content = data[field];
-      const cellTemplate = `
-        <div class="sortable-table__cell">${field === 'images' ? this.imageCellTemplate(content) : `${content}`}</div>`;
+      const cellTemplate = template(content);
       return temp += cellTemplate;
     }, '');
     return result;
   }
 
-  imageCellTemplate([{url, source}]) {
-    return `<img class="sortable-table-image" alt="${source}" src="${url}">`;
+  defaultCellTemplate(content) {
+    return `<div class="sortable-table__cell">${content}</div>`;
   }
 
   template() {
