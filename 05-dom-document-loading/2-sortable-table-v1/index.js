@@ -2,59 +2,51 @@ import { sortArrowTemplate, makeSorting, sortRules } from './utils.js';
 
 export default class SortableTable {
   element;
-  subElements;
+  subElements = {};
   constructor(headerConfig = [], data = []) {
     this.headerConfig = headerConfig;
     this.data = data;
 
     this.element = this.createElement(this.template());
+    this.selectSubElements();
+  }
 
-    this.subElements = {
-      header: this.element.querySelector('[data-element="header"]'),
-      body: this.element.querySelector('[data-element="body"]')
-    };
+  selectSubElements() {
+    this.element.querySelectorAll('[data-element]').forEach(element => {
+      this.subElements[element.dataset.element] = element;
+    });
   }
 
   createElement(template) {
-    const divEl = document.createElement('div');
-    divEl.innerHTML = template;
-    return divEl.firstElementChild;
+    const el = document.createElement('div');
+    el.innerHTML = template;
+    return el.firstElementChild;
   }
 
   createHeaderTemplate(orderedField = '', order = '') {
-    const result = this.headerConfig.reduce((template, item) => {
-      const {id, title, sortable} = item;
-      const headerCellTemplate =
-        `<div class="sortable-table__cell"
-          data-id="${id}" data-sortable="${sortable}"
-          ${id === orderedField ? `data-order=${order}` : ''}>
-            <span>${title}</span>
-            ${sortable ? sortArrowTemplate : ''}
-          </div>`;
-      return template += headerCellTemplate;
-    }, '');
-    return result;
+    return this.headerConfig.map((data) => {
+      return this.createHeaderCellTemplate(data, orderedField, order);
+    }).join('');
   }
 
-  createBodyTemplate() {
-    const result = this.data.reduce((temp, item) => {
-      const rowTemplate = `
-      <a href="/products/${item.id}" class="sortable-table__row">${this.createRowTemplate(item)}</a>
-      `;
-      return temp += rowTemplate;
-    }, '');
-    return result;
+  createHeaderCellTemplate({id, title, sortable}, orderedField = '', order = '') {
+    return `
+      <div class="sortable-table__cell"
+        data-id="${id}" data-sortable="${sortable}"
+        ${id === orderedField ? `data-order=${order}` : ''}>
+          <span>${title}</span>
+          ${sortable ? sortArrowTemplate : ''}
+      </div>`;
+  }
+
+  createBodyTemplate(data) {
+    return data.map((item) => {
+      return `<a href="/products/${item.id}" class="sortable-table__row">${this.createRowTemplate(item)}</a>`;
+    }).join('');
   }
 
   createRowTemplate(data) {
-    const headerFields = this.headerConfig.map(({id, template}) =>
-      ({field: id, template: template ? template : this.defaultCellTemplate }));
-    const result = headerFields.reduce((temp, {field, template}) => {
-      const content = data[field];
-      const cellTemplate = template(content);
-      return temp += cellTemplate;
-    }, '');
-    return result;
+    return this.headerConfig.map(({id, template = this.defaultCellTemplate}) => template(data[id])).join('');
   }
 
   defaultCellTemplate(content) {
@@ -69,7 +61,7 @@ export default class SortableTable {
           ${this.createHeaderTemplate()}
         </div>
         <div data-element="body" class="sortable-table__body">
-          ${this.createBodyTemplate()}
+          ${this.createBodyTemplate(this.data)}
         </div>
       </div>
     </div>
@@ -79,20 +71,18 @@ export default class SortableTable {
   sort(field, order) {
     const {sortType} = this.headerConfig.find(({id}) => id === field);
     const rule = sortRules[sortType];
-    this.data = makeSorting(this.data, {field, rule, order});
+    const sortedData = makeSorting(this.data, {field, rule, order});
 
     this.rerenderHeader(field, order);
-    this.rerenderBody();
+    this.rerenderBody(sortedData);
   }
 
   rerenderHeader(field, order) {
-    const {header} = this.subElements;
-    header.innerHTML = this.createHeaderTemplate(field, order);
+    this.subElements.header.innerHTML = this.createHeaderTemplate(field, order);
   }
 
-  rerenderBody() {
-    const {body} = this.subElements;
-    body.innerHTML = this.createBodyTemplate();
+  rerenderBody(data) {
+    this.subElements.body.innerHTML = this.createBodyTemplate(data);
   }
 
   destroy() {
