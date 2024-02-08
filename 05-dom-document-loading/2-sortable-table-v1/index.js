@@ -25,11 +25,11 @@ export default class SortableTable {
 
   createHeaderTemplate(orderedField = '', order = '') {
     return this.headerConfig.map((data) => {
-      return this.createHeaderCellTemplate(data, orderedField, order);
+      return this.headerCellTemplate(data, orderedField, order);
     }).join('');
   }
 
-  createHeaderCellTemplate({id, title, sortable}, orderedField = '', order = '') {
+  headerCellTemplate({id, title, sortable}, orderedField = '', order = '') {
     return `
       <div class="sortable-table__cell"
         data-id="${id}" data-sortable="${sortable}"
@@ -41,11 +41,11 @@ export default class SortableTable {
 
   createBodyTemplate(data) {
     return data.map((item) => {
-      return `<a href="/products/${item.id}" class="sortable-table__row">${this.createRowTemplate(item)}</a>`;
+      return `<a href="/products/${item.id}" class="sortable-table__row">${this.rowTemplate(item)}</a>`;
     }).join('');
   }
 
-  createRowTemplate(data) {
+  rowTemplate(data) {
     return this.headerConfig.map(({id, template = this.defaultCellTemplate}) => template(data[id])).join('');
   }
 
