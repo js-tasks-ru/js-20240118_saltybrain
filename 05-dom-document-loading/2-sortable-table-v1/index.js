@@ -1,4 +1,4 @@
-import { sortArrowTemplate, makeSorting, sortRules } from './utils.js';
+import { sortArrowTemplate, makeSorting, sortRules } from '../../utils/utils.js';
 
 export default class SortableTable {
   element;
