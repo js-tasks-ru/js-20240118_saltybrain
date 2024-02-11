@@ -7,7 +7,7 @@ export default class SortableTable {
     this.headerConfig = headerConfig;
     this.data = data;
 
-    this.element = this.createElement(this.template());
+    this.element = this.createElement(this.template(this.data));
     this.selectSubElements();
   }
 
@@ -53,15 +53,15 @@ export default class SortableTable {
     return `<div class="sortable-table__cell">${content}</div>`;
   }
 
-  template() {
+  template(data, {id, order} = {}) {
     return `
     <div data-element="productsContainer" class="products-list__container">
       <div class="sortable-table">
         <div data-element="header" class="sortable-table__header sortable-table__row">
-          ${this.createHeaderTemplate()}
+          ${this.createHeaderTemplate(id, order)}
         </div>
         <div data-element="body" class="sortable-table__body">
-          ${this.createBodyTemplate(this.data)}
+          ${this.createBodyTemplate(data)}
         </div>
       </div>
     </div>
@@ -69,12 +69,20 @@ export default class SortableTable {
   }
 
   sort(field, order) {
-    const {sortType} = this.headerConfig.find(({id}) => id === field);
-    const rule = sortRules[sortType];
-    const sortedData = makeSorting(this.data, {field, rule, order});
+    const sortedData = this.getSortedData(field, order);
 
     this.rerenderHeader(field, order);
     this.rerenderBody(sortedData);
+  }
+
+  getSortedData(field, order) {
+    const rule = this.getSortRule(field);
+    return makeSorting(this.data, {field, rule, order});
+  }
+
+  getSortRule(field) {
+    const {sortType} = this.headerConfig.find(({id}) => id === field);
+    return sortRules[sortType];
   }
 
   rerenderHeader(field, order) {

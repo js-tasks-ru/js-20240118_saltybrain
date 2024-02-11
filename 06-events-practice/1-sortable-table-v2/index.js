@@ -1,15 +1,15 @@
-import { sortArrowTemplate, makeSorting, sortRules } from '../../utils/utils.js';
+import SortableTableV1 from '../../05-dom-document-loading/2-sortable-table-v1/index.js';
 
-export default class SortableTable {
+export default class SortableTable extends SortableTableV1 {
   element;
   subElements = {};
-  sortLocally;
   constructor(
     headerConfig = [], {
       data = [],
       sorted = {}
     } = {},
     sortLocally = true) {
+    super();
     this.headerConfig = headerConfig;
     this.data = data;
     this.sorted = sorted;
@@ -25,79 +25,12 @@ export default class SortableTable {
     this.createListeners();
   }
 
-  selectSubElements() {
-    this.element.querySelectorAll('[data-element]').forEach(element => {
-      this.subElements[element.dataset.element] = element;
-    });
-  }
-
-  createElement(template) {
-    const el = document.createElement('div');
-    el.innerHTML = template;
-    return el.firstElementChild;
-  }
-
-  createHeaderTemplate(orderedField = '', order = '') {
-    return this.headerConfig.map((data) => {
-      return this.headerCellTemplate(data, orderedField, order);
-    }).join('');
-  }
-
-  headerCellTemplate({id, title, sortable}, orderedField = '', order = '') {
-    return `
-      <div class="sortable-table__cell"
-        data-id="${id}" data-sortable="${sortable}"
-        ${id === orderedField ? `data-order=${order}` : ''}>
-          <span>${title}</span>
-          ${sortable ? sortArrowTemplate : ''}
-      </div>`;
-  }
-
-  createBodyTemplate(data) {
-    return data.map((item) => {
-      return `<a href="/products/${item.id}" class="sortable-table__row">${this.rowTemplate(item)}</a>`;
-    }).join('');
-  }
-
-  rowTemplate(data) {
-    return this.headerConfig.map(({id, template = this.defaultCellTemplate}) => template(data[id])).join('');
-  }
-
-  defaultCellTemplate(content) {
-    return `<div class="sortable-table__cell">${content}</div>`;
-  }
-
-  template(data, {id, order}) {
-    return `
-    <div data-element="productsContainer" class="products-list__container">
-      <div class="sortable-table">
-        <div data-element="header" class="sortable-table__header sortable-table__row">
-          ${this.createHeaderTemplate(id, order)}
-        </div>
-        <div data-element="body" class="sortable-table__body">
-          ${this.createBodyTemplate(data)}
-        </div>
-      </div>
-    </div>
-    `;
-  }
-
-  getSortedData(field, order) {
-    const rule = this.getSortRule(field);
-    return makeSorting(this.data, {field, rule, order});
-  }
-
-  getSortRule(field) {
-    const {sortType} = this.headerConfig.find(({id}) => id === field);
-    return sortRules[sortType];
-  }
-
   createListeners() {
     this.subElements.header.addEventListener('pointerdown', this.onDocumentPointerdown);
   }
 
   destroyListeners() {
-    this.subElements.header.removeEventListener('pointerover', this.onDocumentPointerover);
+    this.subElements.header.removeEventListener('pointerdown', this.onDocumentPointerdown);
   }
 
   onDocumentPointerdown = ({target}) => {
@@ -123,39 +56,17 @@ export default class SortableTable {
   sort(field, order) {
     if (this.sortLocally) {
       this.sortOnClient(field, order);
-    } else {
-      this.sortOnServer();
+      return;
     }
-  }
-
-  renderHeader(field, order) {
-    this.subElements.header.innerHTML = this.createHeaderTemplate(field, order);
-  }
-
-  renderBody(data) {
-    this.subElements.body.innerHTML = this.createBodyTemplate(data);
+    this.sortOnServer();
   }
 
   sortOnClient(field, order) {
-    const {sortType} = this.headerConfig.find(({id}) => id === field);
-    const rule = sortRules[sortType];
-    const sortedData = makeSorting(this.data, {field, rule, order});
-
-    this.renderHeader(field, order);
-    this.renderBody(sortedData);
-
-    const { body } = this.subElements;
-    const firstRow = body.firstElementChild;
-    const lastRow = body.lastElementChild;
-    debugger
+    super.sort(field, order);
   }
 
   destroy() {
-    this.remove();
+    super.destroy();
     this.destroyListeners();
-  }
-
-  remove() {
-    this.element.remove();
   }
 }
