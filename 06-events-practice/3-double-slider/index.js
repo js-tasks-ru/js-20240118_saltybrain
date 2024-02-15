@@ -59,13 +59,15 @@ export default class DoubleSlider {
     this.subElements.thumbRight.addEventListener('pointerdown', this.onRightThumbPointerdown);
   }
 
-  onLeftThumbPointerdown = () => {
+  onLeftThumbPointerdown = ({target}) => {
+    if (target !== this.subElements.thumbLeft) {return;}
     document.removeEventListener('pointermove', this.onRightThumbMove);
     document.addEventListener('pointermove', this.onLeftThumbMove);
     document.addEventListener('pointerup', this.onLeftThumbPointerUp);
   }
 
-  onRightThumbPointerdown = () => {
+  onRightThumbPointerdown = ({target}) => {
+    if (target !== this.subElements.thumbRight) {return;}
     document.removeEventListener('pointermove', this.onLeftThumbMove);
     document.addEventListener('pointermove', this.onRightThumbMove);
     document.addEventListener('pointerup', this.onRightThumbPointerUp);
