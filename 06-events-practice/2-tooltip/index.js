@@ -33,6 +33,7 @@ class Tooltip {
 
   createListeners() {
     document.addEventListener('pointerover', this.onDocumentPointerover);
+    document.addEventListener('pointerout', this.onDocumentPointerout);
   }
 
   onDocumentPointerover = ({target}) => {
@@ -40,17 +41,23 @@ class Tooltip {
       return;
     }
     this.render(target.dataset.tooltip);
-    target.addEventListener('pointermove', this.onTargetPointermove);
-    target.addEventListener('pointerout', this.remove.bind(this));
+    document.addEventListener('pointermove', this.onDocumentPointermove);
   }
 
-  onTargetPointermove = ({clientX, clientY}) => {
-    this.element.style.top = clientY + 'px';
-    this.element.style.left = clientX + 'px';
+  onDocumentPointerout = () => {
+    this.remove();
+    document.removeEventListener('pointermove', this.onDocumentPointermove);
+  }
+
+  onDocumentPointermove = ({clientX, clientY}) => {
+    const shift = 10;
+    this.element.style.top = clientY + shift + 'px';
+    this.element.style.left = clientX + shift + 'px';
   }
 
   destroyListeners() {
     document.removeEventListener('pointerover', this.onDocumentPointerover);
+    document.removeEventListener('pointerout', this.onDocumentPointerout);
   }
 
   destroy() {

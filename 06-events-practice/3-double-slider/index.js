@@ -55,31 +55,24 @@ export default class DoubleSlider {
   }
 
   createListeners() {
-    this.subElements.thumbLeft.addEventListener('pointerdown', this.onLeftThumbPointerdown);
-    this.subElements.thumbRight.addEventListener('pointerdown', this.onRightThumbPointerdown);
+    this.element.addEventListener('pointerdown', this.onThumbPointerdown);
+    document.addEventListener('pointerup', this.onDocumentPointerup);
   }
 
-  onLeftThumbPointerdown = ({target}) => {
-    if (target !== this.subElements.thumbLeft) {return;}
-    document.removeEventListener('pointermove', this.onRightThumbMove);
-    document.addEventListener('pointermove', this.onLeftThumbMove);
-    document.addEventListener('pointerup', this.onLeftThumbPointerUp);
+  onThumbPointerdown = ({target}) => {
+    if (target === this.subElements.thumbLeft) {
+      document.removeEventListener('pointermove', this.onRightThumbMove);
+      document.addEventListener('pointermove', this.onLeftThumbMove);
+    }
+    if (target === this.subElements.thumbRight) {
+      document.removeEventListener('pointermove', this.onLeftThumbMove);
+      document.addEventListener('pointermove', this.onRightThumbMove);
+    }
   }
 
-  onRightThumbPointerdown = ({target}) => {
-    if (target !== this.subElements.thumbRight) {return;}
-    document.removeEventListener('pointermove', this.onLeftThumbMove);
-    document.addEventListener('pointermove', this.onRightThumbMove);
-    document.addEventListener('pointerup', this.onRightThumbPointerUp);
-  }
-
-  onLeftThumbPointerUp = () => {
+  onDocumentPointerup = () => {
     this.dispatchEvent();
     document.removeEventListener('pointermove', this.onLeftThumbMove);
-  }
-
-  onRightThumbPointerUp = () => {
-    this.dispatchEvent();
     document.removeEventListener('pointermove', this.onRightThumbMove);
   }
 
@@ -139,8 +132,8 @@ export default class DoubleSlider {
   }
 
   destroyListeners() {
-    this.subElements.thumbLeft.removeEventListener('pointerdown', this.onLeftThumbPointerdown);
-    this.subElements.thumbRight.removeEventListener('pointerdown', this.onRightThumbPointerdown);
+    this.element.removeEventListener('pointerdown', this.onThumbPointerdown);
+    document.removeEventListener('pointerup', this.onDocumentPointerup);
   }
 
   getCoordinates() {
