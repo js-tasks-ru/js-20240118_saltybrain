@@ -1,6 +1,7 @@
 export default class ColumnChart {
   chartHeight = 50;
   element;
+  subElements = {};
   constructor({
     label = '',
     link = '',
@@ -15,6 +16,13 @@ export default class ColumnChart {
     this.formatHeading = formatHeading;
 
     this.element = this.createElement(this.template());
+    this.setSubElements();
+  }
+
+  setSubElements() {
+    this.element.querySelectorAll('[data-element]').forEach(element => {
+      this.subElements[element.dataset.element] = element;
+    });
   }
 
   createElement(template) {
@@ -30,11 +38,11 @@ export default class ColumnChart {
     return `<a href="${this.link}" class="column-chart__link">View all</a>`;
   }
 
-  createHeaderTemplate() {
-    if (!this.value && this.value !== 0) {
+  createHeaderTemplate(value = 0) {
+    if (!value && value !== 0) {
       return '';
     }
-    return `<div data-element="header" class="column-chart__header">${this.formatHeading(this.value)}</div>`;
+    return `<div data-element="header" class="column-chart__header">${this.formatHeading(value)}</div>`;
   }
 
   createChartTemplate(data) {
@@ -49,18 +57,22 @@ export default class ColumnChart {
 
   template() {
     return `
-      <div class="${this.loadingClass()} column-chart" style="--chart-height: ${this.chartHeight}">
-        <div class="column-chart__title">
-          ${this.label}
-          ${this.createLinkTemplate()}
-        </div>
+      <div class="column-chart ${this.loadingClass()}" style="--chart-height: ${this.chartHeight}">
+        ${this.createTitleTemplate()}
         <div class="column-chart__container">
-          ${this.createHeaderTemplate()}
+          ${this.createHeaderTemplate(this.value)}
           <div data-element="body" class="column-chart__chart">
             ${this.createChartTemplate(this.data)}
           </div>
         </div>
       </div>`;
+  }
+
+  createTitleTemplate() {
+    return `<div data-element="title" class="column-chart__title">
+      ${this.label}
+      ${this.createLinkTemplate()}
+    </div>`;
   }
 
   getColumnProps(data) {
@@ -73,9 +85,28 @@ export default class ColumnChart {
     }));
   }
 
+  removeLoadingClass() {
+    this.element.classList.remove('column-chart_loading');
+  }
+
+  getValue(data) {
+    return data.reduce((acc, item) => acc += item, 0).toLocaleString('en-US');
+  }
+
   update(data) {
     this.data = data;
-    this.element.querySelector('[data-element="body"]').innerHTML = this.createChartTemplate(this.data);
+    this.value = this.getValue(this.data);
+    this.removeLoadingClass();
+    this.renderBody(this.data);
+    this.renderHeader(this.value);
+  }
+
+  renderBody(data) {
+    this.subElements.body.innerHTML = this.createChartTemplate(data);
+  }
+
+  renderHeader(value) {
+    this.subElements.header.innerHTML = this.createHeaderTemplate(value);
   }
 
   remove() {
