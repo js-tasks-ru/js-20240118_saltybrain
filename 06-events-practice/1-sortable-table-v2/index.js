@@ -9,8 +9,7 @@ export default class SortableTable extends SortableTableV1 {
       sorted = {}
     } = {},
     sortLocally = true) {
-    super();
-    this.headerConfig = headerConfig;
+    super(headerConfig);
     this.data = data;
     this.sorted = sorted;
     this.sortLocally = sortLocally;
