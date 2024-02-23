@@ -3,6 +3,8 @@ import { sortArrowTemplate, makeSorting, sortRules } from '../../utils/utils.js'
 export default class SortableTable {
   element;
   subElements = {};
+  loadingClass = 'sortable-table_loading';
+  placeholderClass = 'sortable-table__empty-placeholder';
   constructor(headerConfig = [], data = []) {
     this.headerConfig = headerConfig;
     this.data = data;
@@ -45,6 +47,19 @@ export default class SortableTable {
     }).join('');
   }
 
+  createLoadingTemplate() {
+    return `<div data-element="loading" class="loading-line sortable-table__loading-line"></div>`;
+  }
+
+  createPlaceholderTemplate() {
+    return `<div data-element="emptyPlaceholder" class="sortable-table__empty-placeholder">
+      <div>
+        <p>No products satisfies your filter criteria</p>
+        <button type="button" class="button-primary-outline">Reset all filters</button>
+      </div>
+    </div>`;
+  }
+
   rowTemplate(data) {
     return this.headerConfig.map(({id, template = this.defaultCellTemplate}) => template(data[id])).join('');
   }
@@ -63,6 +78,10 @@ export default class SortableTable {
         <div data-element="body" class="sortable-table__body">
           ${this.createBodyTemplate(data)}
         </div>
+
+        ${this.createLoadingTemplate()}
+
+        ${this.createPlaceholderTemplate()}
       </div>
     </div>
     `;
@@ -71,8 +90,20 @@ export default class SortableTable {
   sort(field, order) {
     const sortedData = this.getSortedData(field, order);
 
-    this.rerenderHeader(field, order);
-    this.rerenderBody(sortedData);
+    this.renderHeader(field, order);
+    this.renderBody(sortedData);
+  }
+
+  addLoadingClass() {
+    this.element.querySelector('.sortable-table').classList.add(this.loadingClass);
+  }
+
+  removeLoadingClass() {
+    this.element.querySelector('.sortable-table').classList.remove(this.loadingClass);
+  }
+
+  showPlaceholder() {
+    this.subElements.emptyPlaceholder.classList.remove(this.placeholderClass);
   }
 
   getSortedData(field, order) {
@@ -85,11 +116,11 @@ export default class SortableTable {
     return sortRules[sortType];
   }
 
-  rerenderHeader(field, order) {
+  renderHeader(field, order) {
     this.subElements.header.innerHTML = this.createHeaderTemplate(field, order);
   }
 
-  rerenderBody(data) {
+  renderBody(data) {
     this.subElements.body.innerHTML = this.createBodyTemplate(data);
   }
 

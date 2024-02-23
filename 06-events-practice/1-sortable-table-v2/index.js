@@ -1,19 +1,19 @@
 import SortableTableV1 from '../../05-dom-document-loading/2-sortable-table-v1/index.js';
 
 export default class SortableTable extends SortableTableV1 {
-  element;
-  subElements = {};
   constructor(
     headerConfig = [], {
       data = [],
-      sorted = {}
-    } = {},
-    sortLocally = true) {
+      isSortLocally = true,
+      sorted = {
+        id: headerConfig.find(({sortable}) => sortable).id,
+        order: 'asc'
+      }
+    } = {}) {
     super(headerConfig);
     this.data = data;
     this.sorted = sorted;
-    this.sortLocally = sortLocally;
-
+    this.isSortLocally = isSortLocally;
     const sortedData = this.getSortedData(this.sorted.id, this.sorted.order);
 
     this.element = this.createElement(this.template(sortedData, {
@@ -53,16 +53,18 @@ export default class SortableTable extends SortableTableV1 {
   }
 
   sort(field, order) {
-    if (this.sortLocally) {
+    if (this.isSortLocally) {
       this.sortOnClient(field, order);
       return;
     }
-    this.sortOnServer();
+    this.sortOnServer(field, order);
   }
 
   sortOnClient(field, order) {
     super.sort(field, order);
   }
+
+  sortOnServer() {}
 
   destroy() {
     super.destroy();
